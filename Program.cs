@@ -1,12 +1,24 @@
+using Microsoft.EntityFrameworkCore;
+using WebAPI.Models;
+
 var builder = WebApplication.CreateBuilder(args);
 
+// ----------------Service Section----------------//
+var services = builder.Services;
 // Add services to the container.
-
-builder.Services.AddControllers();
+services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+services.AddEndpointsApiExplorer();
+services.AddSwaggerGen();
 
+//Service for DbContext
+services.AddDbContext<AppDbContext>(options =>
+{
+    options.UseSqlite(builder.Configuration.GetConnectionString("sqlite"));
+});
+
+
+// ----------------App Section----------------//
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
