@@ -1,64 +1,121 @@
+using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using WebAPI.DTOs.Request;
+using WebAPI.DTOs.Response;
 using WebAPI.Models;
 
 namespace WebAPI.Controllers;
 
-[Route("api/[controller]")]
+
 [ApiController]
+[Route("api/[controller]")]
 
 public class ProductController : ControllerBase
 {
-    static List<ProductModel> products = new List<ProductModel>();
+    //DI AppDbContext Service
+    private readonly AppDbContext _appDbContext;
+
+    public ProductController(AppDbContext appDbContext)
+    {
+        _appDbContext = appDbContext;
+    }
 
     [HttpGet]
-    public IActionResult GetProducts()
+    public async Task<IActionResult> GetProducts()
     {
-        return Ok(products);
+        var results = await _appDbContext.Products.Select(x => new ProductDTO
+        {
+            Id = x.Id,
+            Name = x.Name,
+            Price = x.Price
+        }).ToListAsync();
+
+        //Send response
+        return Ok(results);
     }
 
     [HttpGet("{id}")]
-    public IActionResult GetProduct(Guid id)
+    public async Task<IActionResult> GetProduct(Guid id)
     {
-        var product = products.FirstOrDefault(x => x.Id == id);
-        if (product == null)
+        var curProduct = await _appDbContext.Products.FirstOrDefaultAsync(x => x.Id == id);
+
+        if (curProduct == null)
         {
             return NotFound();
         }
-        return Ok(product);
+        var result = new ProductDetailDTO
+        {
+            Id = curProduct.Id,
+            Name = curProduct.Name,
+            Price = curProduct.Price,
+            Description = curProduct.Description
+        };
+        return Ok(result);
     }
 
     [HttpPost]
-    public IActionResult PostProduct(string name, double price)
+    public async Task<IActionResult> PostProduct(CreateProductDTO request)
     {
-        var newProduct = new ProductModel { Id = Guid.NewGuid(), Name = name, Price = price };
-        products.Add(newProduct);
-        return CreatedAtAction(nameof(GetProduct), new { id = newProduct.Id }, newProduct);
+        //Add data from request to database
+        var newProduct = new ProductModel
+        {
+            Name = request.Name,
+            Price = request.Price,
+            Description = request.Description
+        };
+
+        //Update database
+        _appDbContext.Products.Add(newProduct);
+        await _appDbContext.SaveChangesAsync();
+
+        //Send response
+        var result = new ProductDetailDTO
+        {
+            Id = newProduct.Id,
+            Name = newProduct.Name,
+            Price = newProduct.Price,
+            Description = newProduct.Description
+        };
+        return CreatedAtAction(nameof(GetProduct), new { id = result.Id }, result);
     }
 
-     [HttpPut("{id}")]
-    public IActionResult PutProduct(Guid id, string name, double price)
+    [HttpPut("{id}")]
+    public async Task<IActionResult> PutProduct(Guid id, UpdateProductDTO request)
     {
-        var product = products.FirstOrDefault(x => x.Id == id);
-        if (product == null)
+        //Find product in database Table by id
+        var curProduct = await _appDbContext.Products.FirstOrDefaultAsync(x => x.Id == id);
+        if (curProduct == null)
         {
             return NotFound();
         }
-        product.Name = name;
-        product.Price = price;
-        return NoContent();
+        //Update product data in DB from request
+        curProduct.Name = request.Name;
+        curProduct.Price = request.Price;
+        curProduct.Description = request.Description;
+        //Update database
+        _appDbContext.Products.Update(curProduct);
+        await _appDbContext.SaveChangesAsync();
+        return NoContent();     
     }
 
     [HttpDelete("{id}")]
     public IActionResult DeleteProduct(Guid id)
     {
-        var product = products.FirstOrDefault(x => x.Id == id);
-        if (product == null)
+        //Find product in database Table by id
+        var curProduct = _appDbContext.Products.FirstOrDefault(x => x.Id == id);
+        if (curProduct == null)
         {
             return NotFound();
         }
-        products.Remove(product);
+        //Delete product from database
+        _appDbContext.Products.Remove(curProduct);
+        //Upate database
+        _appDbContext.SaveChanges();
+        //Send response
         return NoContent();
+
     }
 
 }

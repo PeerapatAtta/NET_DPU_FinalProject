@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace WebAPI.DTOs.Request;
 
-public class UpdateProductDTO_
+public class UpdateProductDTO
 {
     [Required(ErrorMessage = "Name is required")]
     public required string Name { get; set; }
