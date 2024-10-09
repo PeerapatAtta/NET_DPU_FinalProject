@@ -1,11 +1,12 @@
 using System;
 
-namespace WebAPI.Models;
+namespace WebAPI.DTOs.Response;
 
-public class ProductModel
+public class ProductDetailDTO
 {
     public Guid Id { get; set; }
-    public string? Name { get; set; }
+    public required string Name { get; set; }
     public double Price { get; set; }
     public string? Description { get; set; }
+
 }
