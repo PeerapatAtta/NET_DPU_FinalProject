@@ -101,10 +101,11 @@ public class ProductController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public IActionResult DeleteProduct(Guid id)
+    public async Task<IActionResult> DeleteProduct(Guid id)
     {
         //Find product in database Table by id
-        var curProduct = _appDbContext.Products.FirstOrDefault(x => x.Id == id);
+        var curProduct = await _appDbContext.Products.FirstOrDefaultAsync(x => x.Id == id);
+
         if (curProduct == null)
         {
             return NotFound();
@@ -112,7 +113,7 @@ public class ProductController : ControllerBase
         //Delete product from database
         _appDbContext.Products.Remove(curProduct);
         //Upate database
-        _appDbContext.SaveChanges();
+        await _appDbContext.SaveChangesAsync();
         //Send response
         return NoContent();
 
