@@ -17,6 +17,19 @@ services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("sqlite"));
 });
 
+//Add Service for CORS
+services.AddCors(options =>
+{
+    options.AddPolicy("MyCors", config =>
+    {
+        config
+        .WithOrigins(builder.Configuration.GetSection("AllowedOrigins")
+        .Get<string[]>()!)
+        .AllowAnyMethod()
+        .AllowAnyHeader();
+    });
+});
+
 
 // ----------------App Section----------------//
 var app = builder.Build();
@@ -29,9 +42,12 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
 
+// add CORS middleware
+app.UseCors("MyCors");
+
+// map enpoint for controller actions
 app.MapControllers();
 
 app.Run();
