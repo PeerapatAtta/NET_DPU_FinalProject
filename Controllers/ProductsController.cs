@@ -10,14 +10,14 @@ namespace WebAPI.Controllers;
 
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("[controller]")]
 
-public class ProductController : ControllerBase
+public class ProductsController : ControllerBase
 {
     //DI AppDbContext Service
     private readonly AppDbContext _appDbContext;
 
-    public ProductController(AppDbContext appDbContext)
+    public ProductsController(AppDbContext appDbContext)
     {
         _appDbContext = appDbContext;
     }
