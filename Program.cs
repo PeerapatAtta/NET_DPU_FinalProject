@@ -17,6 +17,13 @@ services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("sqlite"));
 });
 
+// add identity service and its db context for Authentication
+services.AddIdentity<UserModel, RoleModel>(options =>
+{
+    options.User.RequireUniqueEmail = true;
+})
+.AddEntityFrameworkStores<AppDbContext>();
+
 //Add Service for CORS
 services.AddCors(options =>
 {
