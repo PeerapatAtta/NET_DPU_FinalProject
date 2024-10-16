@@ -8,8 +8,8 @@ using WebAPI.Models;
 
 namespace WebAPI.Controllers;
 
-
 [ApiController]
+//Base route for this controller
 [Route("[controller]")]
 
 public class ProductsController : ControllerBase
