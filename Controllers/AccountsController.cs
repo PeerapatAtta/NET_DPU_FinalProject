@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using WebAPI.DTOs.Request;
+using WebAPI.Helpers;
 using WebAPI.Models;
 
 namespace WebAPI.Controllers;
@@ -11,14 +12,15 @@ namespace WebAPI.Controllers;
 
 public class AccountsController : ControllerBase
 {
-    //DI > Object and Constructor
-    //Object 
+    //DDI>Object 
     private readonly UserManager<UserModel> userManager;
+    private readonly TokenHelper tokenHelper;
 
-    //Constructor
-    public AccountsController(UserManager<UserModel> _userManager)
+    //DI>Constructor
+    public AccountsController(UserManager<UserModel> _userManager, TokenHelper _tokenHelper)
     {
         userManager = _userManager;
+        tokenHelper = _tokenHelper;
     }
 
     //Endpoint for Register
@@ -36,7 +38,7 @@ public class AccountsController : ControllerBase
 
         // create new user to database
         var result = await userManager.CreateAsync(newUser, request.Password!);
-        
+
         // Check if user creation is failed
         if (!result.Succeeded)
         {
@@ -57,6 +59,28 @@ public class AccountsController : ControllerBase
         }
 
         return StatusCode(StatusCodes.Status201Created);
+    }
+
+    //Endpoint for Login
+    [HttpPost("Login")]
+    public async Task<IActionResult> LoginUser(LoginUserDTO request)
+    {
+        // find user email in DB
+        var user = await userManager.FindByEmailAsync(request.Email!);
+        // Console.WriteLine(user != null ? user.ToString() : "User is null");
+
+        // check user email and password in DB
+        if (user is null || !await userManager.CheckPasswordAsync(user, request.Password!))
+        {
+            var errors = new[] { "Invalid email or password." };
+            return Unauthorized(new { Errors = errors });
+        }
+
+        // create new tokens for Login
+        var token = await tokenHelper.CreateToken(user);
+
+        // return access token and refresh token to client
+        return Ok(new TokenResultDTO { AccessToken = token.AccessToken, RefreshToken = token.RefreshToken });
     }
 
 }

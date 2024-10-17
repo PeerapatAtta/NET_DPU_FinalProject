@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using WebAPI.Helpers;
 using WebAPI.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,6 +21,7 @@ services.AddDbContext<AppDbContext>(options =>
 // add identity service and its db context for Authentication
 services.AddIdentity<UserModel, RoleModel>(options =>
 {
+    //Email must don't be same to other account
     options.User.RequireUniqueEmail = true;
 })
 .AddEntityFrameworkStores<AppDbContext>();
@@ -36,6 +38,9 @@ services.AddCors(options =>
         .AllowAnyHeader();
     });
 });
+
+//Add service for tokenHelper
+services.AddScoped<TokenHelper>();
 
 
 // ----------------App Section----------------//
