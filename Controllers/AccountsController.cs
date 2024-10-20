@@ -1,8 +1,10 @@
 using System.Security.Claims;
+using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 using WebAPI.DTOs.Request;
 using WebAPI.Helpers;
 using WebAPI.Models;
@@ -14,15 +16,18 @@ namespace WebAPI.Controllers;
 
 public class AccountsController : ControllerBase
 {
-    //DDI>Object 
+    // private fields for dependency injection 
     private readonly UserManager<UserModel> userManager;
     private readonly TokenHelper tokenHelper;
+    private readonly IEmailSender<UserModel> emailSender;
 
-    //DI>Constructor
-    public AccountsController(UserManager<UserModel> _userManager, TokenHelper _tokenHelper)
+    // constructor for dependency injection
+    public AccountsController(UserManager<UserModel> _userManager, TokenHelper _tokenHelper, IEmailSender<UserModel> _emailSender)
     {
+        // assign dependency injection to private fields
         userManager = _userManager;
         tokenHelper = _tokenHelper;
+        emailSender = _emailSender;
     }
 
     //Endpoint for Register
@@ -149,6 +154,65 @@ public class AccountsController : ControllerBase
         await userManager.UpdateAsync(user);
 
         // return 204 No Content
+        return NoContent();
+    }
+
+    //Endpoint for forgot password
+    [HttpPost("ForgotPassword")]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordDTO request)
+    {
+        // find user by email
+        var user = await userManager.FindByEmailAsync(request.Email!);
+
+        // if user is found
+        if (user is not null)
+        {
+            // generate reset code example: 123456 abgt
+            var resetCode = await userManager.GeneratePasswordResetTokenAsync(user);
+            // encode reset code to base64url (ส่งไปเลยไม่ได้บางตัวอักษร http ไม่รองรับ) example: 123456%20abgt
+            resetCode = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(resetCode));
+
+            // create query params for reset link with token and email 
+            //example: https://localhost:4200/account/resetpassword?code=123456%20abgt&email=example@gmail.com
+            var queryParams = new Dictionary<string, string?>{
+                { "token", resetCode },
+                { "email", request.Email },
+            };
+            var resetLink = QueryHelpers.AddQueryString(request.ClientURI!, queryParams);// add query params to client uri for reset link
+            await emailSender.SendPasswordResetLinkAsync(user, request.Email!, resetLink); // send password reset link to user
+        }
+
+        // return 204 No Content both user is found or not
+        return NoContent();
+    }
+
+    //Endpoint for reset password
+    [HttpPost("ResetPassword")]
+    public async Task<IActionResult> ResetPassword(ResetPasswordDTO request)
+    {
+        // find user by email
+        var user = await userManager.FindByEmailAsync(request.Email!);
+
+        // if user is not found return 400 Bad Request
+        if (user is null)
+        {
+            var errors = new[] { "Invalid reset password request." };
+            return BadRequest(new { Errors = errors });
+        }
+
+        // decode reset code from base64url to normal string
+        var resetCode = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(request.Token!));
+
+        // reset password with reset code and new password 
+        var result = await userManager.ResetPasswordAsync(user, resetCode, request.Password!);
+
+        // if reset password failed return 400 Bad Request
+        if (!result.Succeeded)
+        {
+            return BadRequest(new { Errors = result.Errors.Select(e => e.Description) });
+        }
+
+        // return 204 No Content if reset password success
         return NoContent();
     }
 

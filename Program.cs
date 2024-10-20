@@ -45,6 +45,7 @@ services.AddCors(options =>
 
 // add authentication for jwt
 var jwtSettings = builder.Configuration.GetSection("JwtSettings"); // get jwt settings from appsettings.json
+
 // add jwt settings to services
 services.AddAuthentication(options =>
 {
@@ -67,7 +68,9 @@ services.AddAuthentication(options =>
 });
 
 //Add service for Helper class
-services.AddScoped<TokenHelper>();
+services.AddScoped<TokenHelper>();//Add TokenHelper service
+// add email sender service for sending email to user for confirmation, password reset, etc.
+services.AddScoped<IEmailSender<UserModel>, FakeEmailSender>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 services.AddEndpointsApiExplorer();
