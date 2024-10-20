@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -81,6 +83,73 @@ public class AccountsController : ControllerBase
 
         // return access token and refresh token to client
         return Ok(new TokenResultDTO { AccessToken = token.AccessToken, RefreshToken = token.RefreshToken });
+    }
+
+    //Endpoint for Making access token and refress token
+    [HttpPost("Token/Refresh")]
+    public async Task<IActionResult> RefreshToken(RefreshTokenDTO request)
+    {
+        // get username from expired access token
+        string? username;
+
+        try
+        {
+            // get username from expired access token
+            var claimsPrincipal = tokenHelper.GetClaimsPrincipalFromExpiredToken(request.AccessToken!);
+            username = claimsPrincipal.FindFirstValue("preferred_username");
+        }
+        catch (Exception ex)
+        {
+            var errors = new[] { ex.Message };
+            return Unauthorized(new { Errors = errors });
+        }
+
+        // get user in DB from username
+        var user = await userManager.FindByNameAsync(username!);
+
+        // check if user exists and refresh token is valid and not expired
+        if (user is null || user.RefreshToken != request.RefreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+        {
+            // return 401 Unauthorized with error message
+            var errors = new[] { "Invalid token." };
+            // return 401 Unauthorized with error message
+            return Unauthorized(new { Errors = errors });
+        }
+
+        // create new access token and refresh token but don't extend refresh token expiry time
+        var token = await tokenHelper.CreateToken(user, false);
+
+        // return new access token and refresh token
+        return Ok(new TokenResultDTO { AccessToken = token.AccessToken, RefreshToken = token.RefreshToken });
+    }
+
+    //Endpoint for revoking refresh token to use when user logout
+    [HttpPost("Token/Revoke")]
+    [Authorize] // only authenticated/login users can access this endpoint
+    public async Task<IActionResult> RevokeToken([FromBody] object request)
+    {
+        // get username from access token
+        var username = User.FindFirstValue("preferred_username");
+
+        // get user in DB from username
+        var user = await userManager.FindByNameAsync(username!);
+
+        // check if user exists
+        if (user is null)
+        {
+            var errors = new[] { "Invalid revoke request." };
+            return BadRequest(new { Errors = errors });
+        }
+
+        // revoke refresh token
+        user.RefreshToken = null;
+        user.RefreshTokenExpiryTime = null;
+
+        // update user in DB
+        await userManager.UpdateAsync(user);
+
+        // return 204 No Content
+        return NoContent();
     }
 
 }

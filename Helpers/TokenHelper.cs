@@ -10,7 +10,7 @@ using WebAPI.Models;
 namespace WebAPI.Helpers;
 
 public class TokenHelper
-{   
+{
     //DI > Object
     private readonly IConfigurationSection jwtSettings;
     private readonly IConfigurationSection refreshTokenSettings;
@@ -51,16 +51,20 @@ public class TokenHelper
     // Method to Create Token for using in Login
     public async Task<(string AccessToken, string RefreshToken)> CreateToken(UserModel user, bool populateExp = true)
     {
+        // Create a new JWT token and refresh token
         var accessToken = await CreateJwtToken(user);
         user.RefreshToken = CreateRefreshToken();
 
+        // Set the refresh token expiry time
         if (populateExp)
         {
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddMinutes(Convert.ToDouble(refreshTokenSettings["ExpiryInMinutes"]));
         }
 
-        await userManager.UpdateAsync(user);// Add new refresh token to user DB
+        // Update the user in the database
+        await userManager.UpdateAsync(user);
 
+        // Return the access token and refresh token
         return (accessToken, user.RefreshToken);
     }
 
@@ -77,9 +81,11 @@ public class TokenHelper
     {
         var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),// Add user Id to the claims
-            new Claim(ClaimTypes.Name, user.UserName!),// Add user name to the claims
-            new Claim(ClaimTypes.GivenName, user.FirstName + " " + user.LastName),// Add user full name to the claims
+            new Claim("sub", user.Id.ToString()),// Add user Id to the claims
+            new Claim("name", user.FirstName + " " + user.LastName), // Add user full name  to the claims
+            new Claim("given_name", user.FirstName!), // Add user first name to the claims
+            new Claim("family_name", user.LastName!), // Add user last name to the claims
+            new Claim("preferred_username", user.UserName!),// Add username to the claims            
         };
 
         // Get the roles of the user from the database
@@ -105,6 +111,36 @@ public class TokenHelper
             signingCredentials: signingCredentials // Add the signing credentials to the token
         );
         return token;
+    }
+
+    // get user data from expired access token
+    public ClaimsPrincipal GetClaimsPrincipalFromExpiredToken(string token)
+    {
+        // Token validation parameters
+        var tokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true, // ต้องตรวจสอบ Issuer
+            ValidateAudience = true, // ต้องตรวจสอบ Audience
+            ValidateLifetime = false, // ไม่ต้องตรวจสอบวันหมดอายุ
+            ValidIssuer = jwtSettings["ValidIssuer"], // ต้องตรงกับที่เรากำหนด
+            ValidAudience = jwtSettings["ValidAudience"], // ต้องตรงกับที่เรากำหนด
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["SecurityKey"]!)) // ต้องตรงกับที่เรากำหนด
+        };
+
+        // validate access token > check access token ดูว่าถูกต้องหรือไม่
+        var claimsPrincipal = new JwtSecurityTokenHandler().ValidateToken(token, tokenValidationParameters, out var validatedToken);
+
+        // get JWT token
+        var jwtToken = validatedToken as JwtSecurityToken;
+
+        // check if JWT token is null or not and check if the algorithm is HmacSha256
+        if (jwtToken is null || !jwtToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+        {
+            throw new SecurityTokenException("Invalid token.");
+        }
+
+        // return claimsPrincipal (payload data = user data)
+        return claimsPrincipal;
     }
 
 }
