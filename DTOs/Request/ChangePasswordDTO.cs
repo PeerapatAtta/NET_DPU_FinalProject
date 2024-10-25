@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace WebAPI.DTOs.Request;
 
-public class ChangePasswordDTO
+public class ChangePasswordDto
 {
         [Required(ErrorMessage = "Old password is required.")]
         public string? OldPassword { get; set; }

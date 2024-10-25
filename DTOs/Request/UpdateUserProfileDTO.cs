@@ -2,7 +2,7 @@ using System;
 
 namespace WebAPI.DTOs.Request;
 
-public class UpdateUserProfileDTO
+public class UpdateUserProfileDto
 {
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
