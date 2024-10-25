@@ -1,4 +1,4 @@
-﻿namespace WebAPI.DTOs.Request;
+﻿namespace WebAPI.DTOs.Response;
 
 public class TokenResultDTO
 {

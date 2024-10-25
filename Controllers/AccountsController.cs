@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using WebAPI.DTOs.Request;
+using WebAPI.DTOs.Response;
 using WebAPI.Helpers;
 using WebAPI.Models;
 
