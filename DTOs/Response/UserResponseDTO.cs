@@ -9,4 +9,5 @@ public class UserResponseDto
     public string? LastName { get; set; }
     public string? Email { get; set; }
     public string? Role { get; set; }
+    public bool IsSuspended { get; set; }  // เพิ่มฟิลด์แสดงสถานะการระงับบัญชี
 }

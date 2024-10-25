@@ -1,4 +1,4 @@
-//3. AppDbContext.cs //
+//4. AppDbContext.cs //
 using System;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +27,11 @@ public class AppDbContext : IdentityDbContext<UserModel, RoleModel, Guid>
             new RoleModel { Id = Guid.Parse("dfb04ae0-0184-41ce-ac5d-1bee1ade19b3"), Name = "Customer", NormalizedName = "CUSTOMER", Description = "Customer role" },
             new RoleModel { Id = Guid.Parse("d1b172ba-4d15-4505-8de0-b43588da3359"), Name = "Seller", NormalizedName = "SELLER", Description = "Seller role" }
         );
+
+        // ตั้งค่า default value เป็น false สำหรับฟิลด์ IsSuspended ใน UserModel
+        builder.Entity<UserModel>()
+            .Property(u => u.IsSuspended)
+            .HasDefaultValue(false);  // ตั้งค่า default value เป็น false
     }
 
 

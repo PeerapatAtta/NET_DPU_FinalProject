@@ -1,3 +1,4 @@
+//1. UsersController.cs//
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
@@ -74,7 +75,7 @@ public class UsersController : ControllerBase
     }
 
     // Endpoint to update user profile
-    // PUT: api/Users/Profile/{id}
+    // PUT: Users/Profile/{id}
     [HttpPut("Profile/{id}")]
     public async Task<IActionResult> UpdateProfile(Guid id, UpdateUserProfileDto request)
     {
@@ -94,7 +95,7 @@ public class UsersController : ControllerBase
     }
 
     // Endpoint to delete user profile
-    // DELETE: api/Users/Profile/{id}
+    // DELETE: Users/Profile/{id}
     [HttpDelete("Profile/{id}")]
     public async Task<IActionResult> DeleteProfile(Guid id)
     {
@@ -146,6 +147,58 @@ public class UsersController : ControllerBase
         if (!result.Succeeded) return BadRequest(result.Errors);// ถ้าไม่สำเร็จ ส่งกลับ 400
 
         return NoContent();// ส่งกลับ 204
+    }
+
+    // Endpoint to suspend user account
+    // PUT: Users/Suspend/{id}
+    [HttpPut("Suspend/{id}")]
+    public async Task<IActionResult> SuspendAccount(Guid id)
+    {
+        var user = await _userManager.FindByIdAsync(id.ToString());// ค้นหาผู้ใช้จาก ID
+        if (user == null) return NotFound(new { message = "User not found" });// ถ้าไม่พบผู้ใช้ ส่งกลับ 404
+
+        user.IsSuspended = true;// ตั้งค่า IsSuspended เป็น true
+        var result = await _userManager.UpdateAsync(user);// อัพเดทข้อมูลผู้ใช้ในฐานข้อมูล
+        if (!result.Succeeded) return BadRequest(result.Errors);// ถ้าไม่สำเร็จ ส่งกลับ 400
+
+        return NoContent();// ส่งกลับ 204
+    }
+
+    // Endpoint to unsuspend user account
+    // PUT: Users/Unsuspend/{id}
+    [HttpPut("Unsuspend/{id}")]
+    public async Task<IActionResult> UnsuspendAccount(Guid id)
+    {
+        var user = await _userManager.FindByIdAsync(id.ToString());// ค้นหาผู้ใช้จาก ID
+        if (user == null) return NotFound(new { message = "User not found" });// ถ้าไม่พบผู้ใช้ ส่งกลับ 404
+
+        user.IsSuspended = false;// ตั้งค่า IsSuspended เป็น false
+        var result = await _userManager.UpdateAsync(user);// อัพเดทข้อมูลผู้ใช้ในฐานข้อมูล
+        if (!result.Succeeded) return BadRequest(result.Errors);// ถ้าไม่สำเร็จ ส่งกลับ 400
+
+        return NoContent();// ส่งกลับ 204
+    }
+
+    // Endpoint to search users
+    // GET: api/Users/Search?query={query}
+    [HttpGet("Search")]
+    public async Task<IActionResult> SearchUsers([FromQuery] string query) // รับ query จาก query string ด้วย [FromQuery] attribute 
+    {
+        // ค้นหาผู้ใช้ที่มีชื่อ หรือ นามสกุล หรือ อีเมล์ ตรงกับ query
+        var users = await _userManager.Users
+            .Where(u => (u.FirstName + " " + u.LastName).Contains(query) || u.Email!.Contains(query))// ค้นหาผู้ใช้ที่มีชื่อ หรือ นามสกุล หรือ อีเมล์ ตรงกับ query
+            .Select(user => new UserResponseDto
+            {
+                Id = user.Id,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                Role = _userManager.GetRolesAsync(user).Result.FirstOrDefault(),
+                IsSuspended = user.IsSuspended  // เพิ่มสถานะการระงับบัญชีใน response
+            })
+            .ToListAsync();// แปลงผลลัพธ์เป็น List
+
+        return Ok(users);// ส่งกลับผลลัพธ์ 200 OK พร้อมกับข้อมูลผู้ใช้
     }
 
 }
