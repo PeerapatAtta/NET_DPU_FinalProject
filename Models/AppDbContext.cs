@@ -12,6 +12,8 @@ public class AppDbContext : IdentityDbContext<UserModel, RoleModel, Guid>
     public DbSet<ProductModel> Products { get; set; } // เพิ่ม DbSet สำหรับ Products
     public DbSet<CatalogModel> Catalogs { get; set; } // เพิ่ม DbSet สำหรับ Catalogs
     public DbSet<FavoriteModel> Favorites { get; set; } // เพิ่ม DbSet สำหรับ Favorites
+    public DbSet<CartModel> Carts { get; set; }  // เพิ่ม DbSet สำหรับ Cart
+
 
     //Constructor
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
@@ -75,6 +77,21 @@ public class AppDbContext : IdentityDbContext<UserModel, RoleModel, Guid>
             .WithMany() // Product ไม่มี FavoriteModel     
             .HasForeignKey(f => f.ProductId)// กำหนด Foreign Key ให้กับ ProductId ใน FavoriteModel    
             .OnDelete(DeleteBehavior.Cascade);// ถ้าลบสินค้าจะลบ Favorite ทั้งหมดของสินค้านั้นด้วย
+
+        // ตั้งค่าความสัมพันธ์ระหว่าง CartModel และ UserModel
+        builder.Entity<CartModel>()
+            .HasOne(c => c.User)    // ตั้งค่าว่า CartModel จะมี UserModel อยู่เพียงตัวเดียว
+            .WithMany(u => u.Carts) // User มี Carts หลายรายการ
+            .HasForeignKey(c => c.UserId)       // กำหนด Foreign Key ให้กับ UserId ใน CartModel
+            .OnDelete(DeleteBehavior.Cascade);  // ถ้าลบผู้ใช้จะลบ Cart ทั้งหมดของผู้ใช้นั้นด้วย
+
+        // ตั้งค่าความสัมพันธ์ระหว่าง CartModel และ ProductModel
+        builder.Entity<CartModel>()
+            .HasOne(c => c.Product) // ตั้งค่าว่า CartModel จะมี ProductModel อยู่เพียงตัวเดียว
+            .WithMany() // Product ไม่มี CartModel
+            .HasForeignKey(c => c.ProductId)    // กำหนด Foreign Key ให้กับ ProductId ใน CartModel
+            .OnDelete(DeleteBehavior.Cascade);  // ถ้าลบสินค้าจะลบ Cart ทั้งหมดของสินค้านั้นด้วย
+
     }
 }
 

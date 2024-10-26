@@ -18,5 +18,8 @@ public class UserModel : IdentityUser<Guid>
 
     // Relationship: One User can have many Favorites
     public ICollection<FavoriteModel> Favorites { get; set; } = new List<FavoriteModel>(); // สร้างคอลเล็กชันของ FavoriteModel ที่เป็นของ User นี้
+
+    // Relationship: One User can have many Carts
+    public ICollection<CartModel> Carts { get; set; } = new List<CartModel>(); // สร้างคอลเล็กชันของ CartModel ที่เป็นของ User นี้
 }
 
