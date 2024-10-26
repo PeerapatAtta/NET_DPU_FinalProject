@@ -1,5 +1,6 @@
 // ProductsController.cs //
 using System.Linq;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,9 +10,9 @@ using WebAPI.Models;
 
 namespace WebAPI.Controllers;
 
-[ApiController]
-//Base route for this controller
-[Route("[controller]")]
+[ApiController] // คือการกำหนดว่า controller นี้เป็น API Controller
+[Route("[controller]")] // คือการกำหนด route ของ controller นี้ว่าจะใช้ชื่อว่าอะไร
+[Authorize] // คือการกำหนดว่า endpoint ใน controller นี้จะต้องมีการ login ก่อนถึงจะใช้งานได้
 
 public class ProductsController : ControllerBase
 {

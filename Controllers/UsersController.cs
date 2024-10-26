@@ -14,8 +14,9 @@ using WebAPI.Models;
 
 namespace WebAPI.Controllers;
 
-[Route("[controller]")]
-[ApiController]
+[Route("[controller]")] // กำหนด route ของ controller นี้ว่าจะใช้ชื่อว่าอะไร
+[ApiController] // กำหนดว่า controller นี้เป็น API Controller
+[Authorize] // ต้อง login ก่อนถึงจะใช้งานได้
 
 public class UsersController : ControllerBase
 {
