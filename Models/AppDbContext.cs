@@ -1,4 +1,4 @@
-//2. AppDbContext.cs //
+//AppDbContext.cs//
 using System;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -11,13 +11,14 @@ public class AppDbContext : IdentityDbContext<UserModel, RoleModel, Guid>
     //New Table in DB
     public DbSet<ProductModel> Products { get; set; } // เพิ่ม DbSet สำหรับ Products
     public DbSet<CatalogModel> Catalogs { get; set; } // เพิ่ม DbSet สำหรับ Catalogs
+    public DbSet<FavoriteModel> Favorites { get; set; } // เพิ่ม DbSet สำหรับ Favorites
 
     //Constructor
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
     }
 
-    //OnModelCreating Method to modify DB Table when migration
+    //Method to modify DB Table when migration
     protected override void OnModelCreating(ModelBuilder builder)
     {
         //Call base OnModelCreating Method
@@ -58,11 +59,22 @@ public class AppDbContext : IdentityDbContext<UserModel, RoleModel, Guid>
             .HasOne(p => p.Catalog) // กำหนดว่า ProductModel จะมี CatalogModel อยู่เพียงตัวเดียว
             .WithMany(c => c.Products) // กำหนดว่า CatalogModel จะมีหลาย ProductModel
             .HasForeignKey(p => p.CatalogId) // กำหนด Foreign Key ให้กับ CatalogId ใน ProductModel
-            // .OnDelete(DeleteBehavior.Cascade);  // ถ้าลบ Catalog จะลบสินค้าทั้งหมดใน Catalog ด้วย
+                                             // .OnDelete(DeleteBehavior.Cascade);  // ถ้าลบ Catalog จะลบสินค้าทั้งหมดใน Catalog ด้วย
             .OnDelete(DeleteBehavior.SetNull);  // ตั้งค่าเป็น NULL ถ้า Catalog ถูกลบ
 
+        // ตั้งค่าความสัมพันธ์สำหรับ FavoriteModel และ UserModel 
+        builder.Entity<FavoriteModel>()
+            .HasOne(f => f.User)// ตั้งค่าว่า FavoriteModel จะมี UserModel อยู่เพียงตัวเดียว
+            .WithMany(u => u.Favorites)  // User มี Favorites หลายรายการ
+            .HasForeignKey(f => f.UserId)// กำหนด Foreign Key ให้กับ UserId ใน FavoriteModel
+            .OnDelete(DeleteBehavior.Cascade);// ถ้าลบผู้ใช้จะลบ Favorite ทั้งหมดของผู้ใช้นั้นด้วย
+
+        // ตั้งค่าความสัมพันธ์สำหรับ FavoriteModel และ ProductModel
+        builder.Entity<FavoriteModel>()
+            .HasOne(f => f.Product) // ตั้งค่าว่า FavoriteModel จะมี ProductModel อยู่เพียงตัวเดียว
+            .WithMany() // Product ไม่มี FavoriteModel     
+            .HasForeignKey(f => f.ProductId)// กำหนด Foreign Key ให้กับ ProductId ใน FavoriteModel    
+            .OnDelete(DeleteBehavior.Cascade);// ถ้าลบสินค้าจะลบ Favorite ทั้งหมดของสินค้านั้นด้วย
     }
-
-
 }
 

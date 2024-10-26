@@ -1,4 +1,4 @@
-//2.UserModel.cs//
+//UserModel.cs//
 using System;
 using Microsoft.AspNetCore.Identity;
 
@@ -13,9 +13,10 @@ public class UserModel : IdentityUser<Guid>
     public string FullName => $"{FirstName} {LastName}";
     public bool IsSuspended { get; set; } = false;  // เพิ่มฟิลด์สำหรับสถานะระงับบัญชี
 
-    /// <summary>
-    /// Products that own by this user
-    /// </summary>
+    // Relationship: One User can have many Products
     public ICollection<ProductModel> Products { get; set; } = new List<ProductModel>();// สร้างคอลเล็กชันของ ProductModel ที่เป็นของ User นี้ 
+
+    // Relationship: One User can have many Favorites
+    public ICollection<FavoriteModel> Favorites { get; set; } = new List<FavoriteModel>(); // สร้างคอลเล็กชันของ FavoriteModel ที่เป็นของ User นี้
 }
 

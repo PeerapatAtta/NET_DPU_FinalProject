@@ -1,4 +1,4 @@
-// 1. ProductModel.cs //
+// ProductModel.cs //
 using System;
 
 namespace WebAPI.Models;
