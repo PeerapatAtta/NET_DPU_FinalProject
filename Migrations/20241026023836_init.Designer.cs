@@ -11,8 +11,8 @@ using WebAPI.Models;
 namespace WebAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241016161717_AddUserandRoleModel")]
-    partial class AddUserandRoleModel
+    [Migration("20241026023836_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -119,10 +119,30 @@ namespace WebAPI.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("WebAPI.Models.CatalogModel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Catalogs");
+                });
+
             modelBuilder.Entity("WebAPI.Models.ProductModel", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("CatalogId")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Description")
@@ -138,6 +158,8 @@ namespace WebAPI.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CatalogId");
 
                     b.HasIndex("UserModelId");
 
@@ -187,6 +209,13 @@ namespace WebAPI.Migrations
                             Description = "Seller role",
                             Name = "Seller",
                             NormalizedName = "SELLER"
+                        },
+                        new
+                        {
+                            Id = new Guid("82b98abf-4f3e-4e4a-b5d8-bff84b3e48d2"),
+                            Description = "Admin role with full permissions",
+                            Name = "Admin",
+                            NormalizedName = "ADMIN"
                         });
                 });
 
@@ -212,6 +241,11 @@ namespace WebAPI.Migrations
 
                     b.Property<string>("FirstName")
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsSuspended")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("LastName")
                         .HasColumnType("TEXT");
@@ -320,9 +354,21 @@ namespace WebAPI.Migrations
 
             modelBuilder.Entity("WebAPI.Models.ProductModel", b =>
                 {
+                    b.HasOne("WebAPI.Models.CatalogModel", "Catalog")
+                        .WithMany("Products")
+                        .HasForeignKey("CatalogId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("WebAPI.Models.UserModel", null)
                         .WithMany("Products")
                         .HasForeignKey("UserModelId");
+
+                    b.Navigation("Catalog");
+                });
+
+            modelBuilder.Entity("WebAPI.Models.CatalogModel", b =>
+                {
+                    b.Navigation("Products");
                 });
 
             modelBuilder.Entity("WebAPI.Models.UserModel", b =>
