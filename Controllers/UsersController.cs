@@ -1,4 +1,4 @@
-//1. UsersController.cs//
+//UsersController.cs//
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;

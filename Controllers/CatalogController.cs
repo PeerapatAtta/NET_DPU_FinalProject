@@ -24,7 +24,7 @@ public class CatalogController : ControllerBase
     }
 
     // Endpoint to get all categories
-    [HttpGet("Categories")]
+    [HttpGet]
     public async Task<IActionResult> GetCategories()
     {
         var categories = await _appDbContext.Catalogs //คือการดึงข้อมูลจากตาราง Catalogs ทั้งหมด
@@ -39,7 +39,7 @@ public class CatalogController : ControllerBase
     }
 
     // Endpoint to get category by ID
-    [HttpGet("Category/{id}")]
+    [HttpGet("{id}")]
     public async Task<IActionResult> GetCategory(Guid id)
     {
         var category = await _appDbContext.Catalogs.FindAsync(id);// คือการดึงข้อมูลจากตาราง Catalogs โดยมีเงื่อนไขว่า Id ต้องเท่ากับ id ที่ส่งมา
@@ -60,7 +60,7 @@ public class CatalogController : ControllerBase
     }
 
     // Endpoint to create a new category
-    [HttpPost("Category")]
+    [HttpPost]
     public async Task<IActionResult> CreateCategory(CreateCategoryDTO request) // คือการสร้างข้อมูลใหม่ในตาราง Catalogs
     {
         var newCategory = new CatalogModel // คือการสร้าง object ของ CatalogModel โดยมีค่าเท่ากับข้อมูลที่ส่งมาจาก request
@@ -83,7 +83,7 @@ public class CatalogController : ControllerBase
     }
 
     // Endpoint to update a category
-    [HttpPut("Category/{id}")]
+    [HttpPut("{id}")]
     public async Task<IActionResult> UpdateCategory(Guid id, UpdateCategoryDTO request)
     {
         var category = await _appDbContext.Catalogs.FindAsync(id); // คือการดึงข้อมูลจากตาราง Catalogs โดยมีเงื่อนไขว่า Id ต้องเท่ากับ id ที่ส่งมา
@@ -102,7 +102,7 @@ public class CatalogController : ControllerBase
     }
 
     // Endpoint to delete a category
-    [HttpDelete("Category/{id}")]
+    [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteCategory(Guid id)
     {
         var category = await _appDbContext.Catalogs.FindAsync(id); // คือการดึงข้อมูลจากตาราง Catalogs โดยมีเงื่อนไขว่า Id ต้องเท่ากับ id ที่ส่งมา
