@@ -14,4 +14,6 @@ public class CreateProductDTO
     
     public string? Description { get; set; }
 
+    public Guid CatalogId { get; set; }  // เพิ่ม CatalogId สำหรับการเชื่อมโยงกับหมวดหมู่สินค้า
+
 }

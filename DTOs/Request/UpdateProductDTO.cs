@@ -12,4 +12,6 @@ public class UpdateProductDTO
     
     public string? Description { get; set; }
 
+    public Guid? CatalogId { get; set; }  // ทำให้ CatalogId เป็น nullable สำหรับการอัปเดตสินค้า
+
 }
