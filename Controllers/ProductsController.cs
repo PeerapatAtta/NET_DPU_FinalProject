@@ -69,7 +69,7 @@ public class ProductsController : ControllerBase
     }
 
     //Endpoint to create a new product
-    [HttpPost]
+    [HttpPost]    
     public async Task<IActionResult> PostProduct(CreateProductDTO request)
     {
         //Create new product in database Table
@@ -97,7 +97,7 @@ public class ProductsController : ControllerBase
     }
 
     //Endpoint to update a product
-    [HttpPut("{id}")]
+    [HttpPut("{id}")]     
     public async Task<IActionResult> PutProduct(Guid id, UpdateProductDTO request)
     {
         var product = await _appDbContext.Products.FindAsync(id); //Find product in database Table by id
@@ -142,7 +142,7 @@ public class ProductsController : ControllerBase
             return BadRequest(new { message = "Query parameter cannot be empty" });
 
         // to search products by keyword
-        var products = await _appDbContext.Products 
+        var products = await _appDbContext.Products
             .Include(p => p.Catalog) // คือการดึงข้อมูลจากตาราง Catalog มาเชื่อมกับตาราง Products
             .Where(p => p.Name!.Contains(query) || p.Description!.Contains(query)) // คือการเช็คว่า Name หรือ Description มีค่าที่ตรงกับ query หรือไม่
             .Select(p => new ProductDTO // คือการสร้าง object ของ ProductDTO โดยมีค่าเท่ากับข้อมูลในตาราง Products
