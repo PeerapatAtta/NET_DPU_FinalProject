@@ -36,7 +36,6 @@ public class UsersController : ControllerBase
 
     // Endpoint to get all users
     [HttpGet]
-    // [Authorize(Roles = "Seller")]
     public async Task<IActionResult> GetAllUsers()
     {
         var users = await _userManager.Users
@@ -46,6 +45,7 @@ public class UsersController : ControllerBase
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Email = user.Email,
+                IsSuspended = user.IsSuspended, // เพิ่มสถานะการระงับบัญชีใน response
                 Role = _userManager.GetRolesAsync(user).Result.FirstOrDefault() // ดึงชื่อบทบาท
             }).ToListAsync();
 

@@ -111,11 +111,11 @@ public class FavoriteController : ControllerBase
     [HttpGet("Count")]
     public async Task<IActionResult> GetFavoriteCount()
     {
-        var userId = GetUserId();
+        var userId = GetUserId(); // ดึง ID ของผู้ใช้จาก claims
         var count = await _appDbContext.Favorites
-            .CountAsync(f => f.UserId == userId);
+            .CountAsync(f => f.UserId == userId); // นับจำนวนสินค้าที่ผู้ใช้นำไป favorite ไว้
 
-        return Ok(new FavoriteCountDTO { Count = count });
+        return Ok(new FavoriteCountDTO { Count = count }); // ส่งข้อมูล count กลับมาในรูปแบบ DTO
     }
 
     // Method to retrieve the current user's ID
